@@ -3,7 +3,7 @@ import {
   MAX_UINT256,
   ZERO_ADDRESS,
   ACTIONS,
-  CONTRACTS
+  CONTRACTS, FALLBACK_RPC
 } from "./constants"
 import { v4 as uuidv4 } from 'uuid'
 
@@ -12,6 +12,7 @@ import { formatCurrency } from '../utils'
 import stores from "./"
 
 import BigNumber from "bignumber.js"
+
 const fetch = require("node-fetch")
 
 class Store {
@@ -781,25 +782,39 @@ class Store {
 
   _getBaseAssets = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API}/api/v1/baseAssets`, {
-      	method: 'get',
-      	headers: {
-          'Authorization': `Basic ${process.env.NEXT_PUBLIC_API_TOKEN}`,
-        }
-      })
-      const baseAssetsCall = await response.json()
+      // TODO: fix this
+      // const response = await fetch(`${process.env.NEXT_PUBLIC_API}/api/v1/baseAssets`, {
+      // 	method: 'get',
+      // 	headers: {
+      //     'Authorization': `Basic ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+      //   }
+      // })
+      // const baseAssetsCall = await response.json()
 
-      let baseAssets = baseAssetsCall.data
-
-      const nativeFTM = {
-        address: CONTRACTS.FTM_ADDRESS,
-        decimals: CONTRACTS.FTM_DECIMALS,
-        logoURI: CONTRACTS.FTM_LOGO,
-        name: CONTRACTS.FTM_NAME,
-        symbol: CONTRACTS.FTM_SYMBOL
-      }
-
-      baseAssets.unshift(nativeFTM)
+      // let baseAssets = baseAssetsCall.data
+      let baseAssets = [
+        {
+          address: CONTRACTS.FTM_ADDRESS,
+          decimals: CONTRACTS.FTM_DECIMALS,
+          logoURI: CONTRACTS.FTM_LOGO,
+          name: CONTRACTS.FTM_NAME,
+          symbol: CONTRACTS.FTM_SYMBOL
+        },
+        {
+          address: CONTRACTS.GOV_TOKEN_ADDRESS,
+          decimals: CONTRACTS.GOV_TOKEN_DECIMALS,
+          logoURI: CONTRACTS.GOV_TOKEN_LOGO,
+          name: CONTRACTS.GOV_TOKEN_NAME,
+          symbol: CONTRACTS.GOV_TOKEN_SYMBOL
+        },
+        {
+          address: CONTRACTS.WFTM_ADDRESS,
+          decimals: CONTRACTS.WFTM_DECIMALS,
+          logoURI: CONTRACTS.FTM_LOGO,
+          name: CONTRACTS.WFTM_NAME,
+          symbol: CONTRACTS.WFTM_SYMBOL
+        },
+      ]
 
       let localBaseAssets = this.getLocalAssets()
 
@@ -813,30 +828,99 @@ class Store {
 
   _getRouteAssets = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API}/api/v1/routeAssets`, {
-      	method: 'get',
-      	headers: {
-          'Authorization': `Basic ${process.env.NEXT_PUBLIC_API_TOKEN}`,
-        }
-      })
-      const routeAssetsCall = await response.json()
-      return routeAssetsCall.data
+      // const response = await fetch(`${process.env.NEXT_PUBLIC_API}/api/v1/routeAssets`, {
+      // 	method: 'get',
+      // 	headers: {
+      //     'Authorization': `Basic ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+      //   }
+      // })
+      // const routeAssetsCall = await response.json()
+      // return routeAssetsCall.data
+      return []
     } catch(ex) {
       console.log(ex)
       return []
     }
   }
+  _getPairs3 = async () => {
+    const web3 = await stores.accountStore.getWeb3Provider()
+    const account = stores.accountStore.getStore("account")
+    return this._getPairInfo()
+
+
+  }
+
+  _getPairs2 = async () => {
+    const web3 = await stores.accountStore.getWeb3Provider()
+    const factory = new web3.eth.Contract(CONTRACTS.FACTORY_ABI, CONTRACTS.FACTORY_ADDRESS)
+    const pairLength = await factory.methods.allPairsLength().call()
+    const mc = await stores.accountStore.getMulticall()
+
+    let result = []
+
+    async function getToken(address) {
+      const token = new web3.eth.Contract(CONTRACTS.ERC20_ABI, address)
+      const [decimals, name, symbol] = await mc.aggregate([
+        token.methods.decimals(),
+        token.methods.name(),
+        token.methods.symbol(),
+      ]);
+      return {
+        address,
+        chainId: process.env.NEXT_PUBLIC_CHAINID,
+        decimals,
+        isWhitelisted: true,
+        logoURI: null,
+        name,
+        symbol,
+      }
+
+    }
+
+    for (let i = 0; i < pairLength; i++) {
+
+      const address = await factory.methods.allPairs(i).call()
+      const pair = new web3.eth.Contract(CONTRACTS.PAIR_ABI, address)
+
+      const [isStable, reserve0, reserve1, symbol, totalSupply, token0Addr, token1Addr] = await mc.aggregate([
+        pair.methods.stable(),
+        pair.methods.reserve0(),
+        pair.methods.reserve1(),
+        pair.methods.symbol(),
+        pair.methods.totalSupply(),
+        pair.methods.token0(),
+        pair.methods.token1(),
+      ]);
+      const token0 = await getToken(token0Addr)
+      const token1 = await getToken(token1Addr)
+
+      const r = {
+        address,
+        decimals: 18,
+        isStable,
+        reserve0: formatCurrency(reserve0, token0['decimals']),
+        reserve1: formatCurrency(reserve1, token1['decimals']),
+        symbol,
+        totalSupply: formatCurrency(totalSupply, 8),
+        token0,
+        token1,
+      }
+      result.push(r)
+    }
+    return result
+  }
 
   _getPairs = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API}/api/v1/pairs`, {
-      	method: 'get',
-      	headers: {
-          'Authorization': `Basic ${process.env.NEXT_PUBLIC_API_TOKEN}`,
-        }
-      })
-      const pairsCall = await response.json()
-      return pairsCall.data
+      // const response = await fetch(`${process.env.NEXT_PUBLIC_API}/api/v1/pairs`, {
+      // 	method: 'get',
+      // 	headers: {
+      //     'Authorization': `Basic ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+      //   }
+      // })
+      // const pairsCall = await response.json()
+      // return pairsCall.data
+      return this._getPairs2()
     } catch(ex) {
       console.log(ex)
       return []
@@ -1167,7 +1251,7 @@ class Store {
   _getBalanceOfs = async (web3, multicall, baseAssets, account) => {
     try {
       const balanceOfCalls = baseAssets.map((asset) => {
-        if(asset.address === 'FTM') {
+        if(asset.address === 'FTM' || asset.address === "CKB") {
           return multicall.getEthBalance(account.address)
         }
 

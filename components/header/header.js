@@ -332,9 +332,9 @@ function Header(props) {
         <div className={classes.ErrorContent}>
           <WrongNetworkIcon className={ classes.networkIcon } />
           <Typography className={classes.ErrorTxt}>
-            The chain you're connected to isn't supported. Please check that your wallet is connected to Fantom Mainnet.
+            The chain you're connected to isn't supported. Please check that your wallet is connected to CKB Godwoken.
           </Typography>
-          <Button className={classes.switchNetworkBtn} variant="contained" onClick={()=>switchChain()} >Switch to { process.env.NEXT_PUBLIC_CHAINID == '4002' ? 'Fantom Testnet' : 'Fantom Mainnet' }</Button>
+          <Button className={classes.switchNetworkBtn} variant="contained" onClick={()=>switchChain()} >Switch to { process.env.NEXT_PUBLIC_CHAINID == '4002' ? 'CKB Godwoken' : 'CKB Godwoken' }</Button>
         </div>
       </div>
     ) : null}

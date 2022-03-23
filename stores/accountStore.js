@@ -8,8 +8,6 @@ import Multicall from '@dopex-io/web3-multicall';
 
 import {
   injected,
-  walletconnect,
-  walletlink,
   network
 } from './connectors';
 
@@ -27,9 +25,6 @@ class Store {
       tokens: [],
       connectorsByName: {
         MetaMask: injected,
-        TrustWallet: injected,
-        WalletConnect: walletconnect,
-        WalletLink: walletlink,
       },
       gasPrices: {
         standard: 90,

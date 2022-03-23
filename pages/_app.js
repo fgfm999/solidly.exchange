@@ -10,7 +10,6 @@ import lightTheme from '../theme/light';
 import darkTheme from '../theme/dark';
 
 import Configure from './configure';
-import ShutdownNotice from '../components/shutdownNotice'
 
 import stores from '../stores/index.js';
 
@@ -41,7 +40,7 @@ export default function MyApp({ Component, pageProps }) {
     setAccountConfigured(true);
   };
 
-  const stalbeSwapConfigureReturned = () => {
+  const stableSwapConfigureReturned = () => {
     setStableSwapConfigured(true);
   };
 
@@ -51,13 +50,13 @@ export default function MyApp({ Component, pageProps }) {
   }, []);
 
   useEffect(function () {
-    stores.emitter.on(ACTIONS.CONFIGURED_SS, stalbeSwapConfigureReturned);
+    stores.emitter.on(ACTIONS.CONFIGURED_SS, stableSwapConfigureReturned);
     stores.emitter.on(ACTIONS.ACCOUNT_CONFIGURED, accountConfigureReturned);
 
     stores.dispatcher.dispatch({ type: ACTIONS.CONFIGURE });
 
     return () => {
-      stores.emitter.removeListener(ACTIONS.CONFIGURED_SS, stalbeSwapConfigureReturned);
+      stores.emitter.removeListener(ACTIONS.CONFIGURED_SS, stableSwapConfigureReturned);
       stores.emitter.removeListener(ACTIONS.ACCOUNT_CONFIGURED, accountConfigureReturned);
     };
   }, []);
@@ -70,11 +69,6 @@ export default function MyApp({ Component, pageProps }) {
         return accountConfigured;
     }
   };
-
-  const [shutdownNoticeOpen, setShutdownNoticeOpen] = useState(true);
-  const closeShutdown = () => {
-    setShutdownNoticeOpen(false)
-  }
 
   return (
     <React.Fragment>
@@ -91,9 +85,6 @@ export default function MyApp({ Component, pageProps }) {
           </Layout>
         )}
         {!validateConfigured() && <Configure {...pageProps} />}
-        { shutdownNoticeOpen &&
-          <ShutdownNotice close={ closeShutdown } />
-        }
       </ThemeProvider>
     </React.Fragment>
   );
