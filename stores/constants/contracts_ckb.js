@@ -27,7 +27,7 @@ export const VE_TOKEN_ADDRESS = '0x2901f56ceCd97f4b47aF9Bb5d49786bcD106f1db'
 export const VE_TOKEN_NAME = 'veNFT'
 export const VE_TOKEN_SYMBOL = 'veNFT'
 export const VE_TOKEN_DECIMALS = 18
-export const VE_TOKEN_LOGO = 'https://prod.solidly.exchange/Solidly-O.svg'
+export const VE_TOKEN_LOGO = 'https://solidly.exchange/Solidly-O.svg'
 export const VE_TOKEN_ABI = abis.veTokenABI
 
 export const WFTM_ADDRESS = '0xA30764B9F073Ef38ce431b1AD2d00134e73Df90c'
@@ -40,7 +40,7 @@ export const FTM_ADDRESS = 'FTM' // logic only
 export const FTM_NAME = 'CKB'
 export const FTM_SYMBOL = 'CKB'
 export const FTM_DECIMALS = 8
-export const FTM_LOGO = 'https://assets.coingecko.com/coins/images/4001/large/Fantom.png'
+export const FTM_LOGO = 'https://assets.coingecko.com/coins/images/9566/large/Nervos.png'
 
 export const FACTORY_ADDRESS = '0xDf56b2cdbFE438b8cabae1Ab74E64824C19bB242'
 export const FACTORY_ABI = abis.factoryABI

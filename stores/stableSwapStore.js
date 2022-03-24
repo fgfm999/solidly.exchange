@@ -842,69 +842,15 @@ class Store {
       return []
     }
   }
-  _getPairs3 = async () => {
-    const web3 = await stores.accountStore.getWeb3Provider()
-    const account = stores.accountStore.getStore("account")
-    return this._getPairInfo()
-
-
-  }
 
   _getPairs2 = async () => {
     const web3 = await stores.accountStore.getWeb3Provider()
     const factory = new web3.eth.Contract(CONTRACTS.FACTORY_ABI, CONTRACTS.FACTORY_ADDRESS)
     const pairLength = await factory.methods.allPairsLength().call()
-    const mc = await stores.accountStore.getMulticall()
-
     let result = []
-
-    async function getToken(address) {
-      const token = new web3.eth.Contract(CONTRACTS.ERC20_ABI, address)
-      const [decimals, name, symbol] = await mc.aggregate([
-        token.methods.decimals(),
-        token.methods.name(),
-        token.methods.symbol(),
-      ]);
-      return {
-        address,
-        chainId: process.env.NEXT_PUBLIC_CHAINID,
-        decimals,
-        isWhitelisted: true,
-        logoURI: null,
-        name,
-        symbol,
-      }
-
-    }
-
     for (let i = 0; i < pairLength; i++) {
-
       const address = await factory.methods.allPairs(i).call()
-      const pair = new web3.eth.Contract(CONTRACTS.PAIR_ABI, address)
-
-      const [isStable, reserve0, reserve1, symbol, totalSupply, token0Addr, token1Addr] = await mc.aggregate([
-        pair.methods.stable(),
-        pair.methods.reserve0(),
-        pair.methods.reserve1(),
-        pair.methods.symbol(),
-        pair.methods.totalSupply(),
-        pair.methods.token0(),
-        pair.methods.token1(),
-      ]);
-      const token0 = await getToken(token0Addr)
-      const token1 = await getToken(token1Addr)
-
-      const r = {
-        address,
-        decimals: 18,
-        isStable,
-        reserve0: formatCurrency(reserve0, token0['decimals']),
-        reserve1: formatCurrency(reserve1, token1['decimals']),
-        symbol,
-        totalSupply: formatCurrency(totalSupply, 8),
-        token0,
-        token1,
-      }
+      const r = await this.getPairByAddress(address)
       result.push(r)
     }
     return result
